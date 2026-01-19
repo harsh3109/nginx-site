@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         LOCAL_SRC = "C:\\site-files"
-        GIT_REPO  = "https://github.com/<username>/nginx-site.git"
+        GIT_REPO  = "https://github.com/harsh3109/nginx-site.git"
         WORK_DIR  = "nginx-site"
         NGINX_HTML = "C:\\nginx\\nginx-1.29.4\\html"
     }
