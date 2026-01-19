@@ -1,0 +1,63 @@
+pipeline {
+    agent any
+
+    environment {
+        LOCAL_SRC = "C:\\site-files"
+        GIT_REPO  = "https://github.com/<username>/nginx-site.git"
+        WORK_DIR  = "nginx-site"
+        NGINX_HTML = "C:\\nginx\\nginx-1.29.4\\html"
+    }
+
+    stages {
+
+        stage('Copy Local Files to Workspace') {
+            steps {
+                bat '''
+                if exist %WORKSPACE%\\site-files rmdir /s /q %WORKSPACE%\\site-files
+                xcopy %LOCAL_SRC% %WORKSPACE%\\site-files /E /I /Y
+                '''
+            }
+        }
+
+        stage('Push Files to Git') {
+            steps {
+                bat '''
+                if exist %WORK_DIR% rmdir /s /q %WORK_DIR%
+                git clone %GIT_REPO%
+                xcopy %WORKSPACE%\\site-files %WORK_DIR% /E /I /Y
+
+                cd %WORK_DIR%
+                git add .
+                git commit -m "Updated site content from Jenkins" || echo "No changes to commit"
+                git push origin main
+                '''
+            }
+        }
+
+        stage('Pull from Git') {
+            steps {
+                bat '''
+                if exist %WORK_DIR% rmdir /s /q %WORK_DIR%
+                git clone %GIT_REPO%
+                '''
+            }
+        }
+
+        stage('Deploy to NGINX html folder') {
+            steps {
+                bat '''
+                xcopy %WORK_DIR% %NGINX_HTML% /E /I /Y
+                '''
+            }
+        }
+
+        stage('Reload NGINX') {
+            steps {
+                bat '''
+                cd C:\\nginx\\nginx-1.29.4
+                nginx.exe -s reload
+                '''
+            }
+        }
+    }
+}
